@@ -21,7 +21,7 @@ DarkNet下训练的yolo的.cfg文件和.weights文件转换为Caffe的.prototxt�
 2. 修改yolov2_tiny_3.prototxt文件（和Caffe下region层的实现有关）
 
 将最后一层
-`
+``
 layer {
     bottom: "layer15-conv"
     top: "layer16-region"
@@ -33,7 +33,7 @@ layer {
         num: 5
     }
 }
-`
+``
 
 修改为：
 
