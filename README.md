@@ -1,4 +1,4 @@
-# darknet2caffe
+# Darknet2Caffe
 DarkNet下训练的yolo的.cfg文件和.weights文件转换为Caffe的.prototxt文件和.caffemodel文件
 
 ## 根目录执行命令：
