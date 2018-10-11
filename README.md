@@ -6,7 +6,7 @@ DarkNet下训练的yolo的.cfg文件和.weights文件转换为Caffe的.prototxt�
 
 其中，yolov2_tiny_3.prototxt yolov2_tiny_3.caffemodel为要生成的文件名
 
-注：修改darknet2caffe.py中的Caffe路径
+注：修改darknet2caffe.py中的Caffe路径（需要该Caffe已经添加YOLO相关的层，https://github.com/lwplw/caffe_yolov2）
 
 ## Reference：
 > https://github.com/marvis/pytorch-caffe-darknet-convert
