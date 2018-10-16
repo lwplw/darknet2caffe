@@ -241,23 +241,19 @@ def cfg2prototxt(cfgfile):
             topnames[layer_id] = bottom
             layer_id = layer_id+1
         elif block['type'] == 'region':
-            if True:
-                region_layer = OrderedDict()
-                region_layer['bottom'] = bottom
-                if block.has_key('name'):
-                    region_layer['top'] = block['name']
-                    region_layer['name'] = block['name']
-                else:
-                    region_layer['top'] = 'layer%d-region' % layer_id
-                    region_layer['name'] = 'layer%d-region' % layer_id
-                region_layer['type'] = 'Region'
-                region_param = OrderedDict()
-                region_param['anchors'] = block['anchors'].strip()
-                region_param['classes'] = block['classes']
-                region_param['num'] = block['num']
-                region_layer['region_param'] = region_param
-                layers.append(region_layer)
-                bottom = region_layer['top']
+            region_layer = OrderedDict()
+            region_layer['name'] = 'region1'
+            region_layer['type'] = 'Region'                         
+            region_layer['bottom'] = bottom
+            region_layer['top'] = 'region1' 
+            region_param = OrderedDict()
+            region_param['classes'] = block['classes']
+            region_param['coords'] = block['coords']
+            region_param['boxes_of_each_grid'] = 5
+            region_param['softmax'] = 'true'
+            region_layer['region_param'] = region_param
+            layers.append(region_layer)
+            bottom = region_layer['top']
             topnames[layer_id] = bottom
             layer_id = layer_id + 1
         elif block['type'] == 'route':
