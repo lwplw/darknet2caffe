@@ -1,6 +1,6 @@
 # The caffe module needs to be on the Python path;
 #  we'll add it here explicitly.
-caffe_root='/home/bu5/bu5project/caffe_yolo/'
+caffe_root='/home/bu5/bu5project/caffe/'
 #os.chdir(caffe_root)
 import sys
 sys.path.insert(0,caffe_root+'python')
@@ -66,11 +66,11 @@ def darknet2caffe(cfgfile, weightfile, protofile, caffemodel):
             else:
                 fc_layer_name = 'layer%d-fc' % layer_id
             start = load_fc2caffe(buf, start, params[fc_layer_name])
-            layer_id = layer_id+1
+            layer_id = layer_id + 1
         elif block['type'] == 'maxpool':
-            layer_id = layer_id+1
+            layer_id = layer_id + 1
         elif block['type'] == 'avgpool':
-            layer_id = layer_id+1
+            layer_id = layer_id + 1
         elif block['type'] == 'region':
             layer_id = layer_id + 1
         elif block['type'] == 'route':
