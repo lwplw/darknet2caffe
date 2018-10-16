@@ -22,36 +22,25 @@ python darknet2caffe.py yolov2_tiny_3.cfg yolov2_tiny_3.weights yolov2_tiny_3.pr
 
 2. 修改`yolov2_tiny_3.prototxt`文件（和Caffe下region层的实现有关）
 
-将最后一层
+将第一层
 ```
-layer {
-    bottom: "layer15-conv"
-    top: "layer16-region"
-    name: "layer16-region"
-    type: "Region"
-    region_param {
-        anchors: "1.08,1.19,  3.42,4.41,  6.63,11.38,  9.42,5.11,  16.62,10.52"
-        classes: 3
-        num: 5
-    }
-}
+input: "data"
+input_dim: 1
+input_dim: 3
+input_dim: 416
+input_dim: 416
 ```
 
 修改为：
 
 ```
 layer {
-  name: "region1"
-  type: "Region"
-  bottom: "layer15-conv"
-  top: "region1"
-  region_param {
-    classes: 3
-    coords: 4
-    boxes_of_each_grid: 5
-    softmax: true
-  }
+  name: "data"
+  type: "Input"
+  top: "data"
+  input_param { shape: { dim: 1 dim: 3 dim: 416 dim: 416 } }
 }
+
 ```
 
 ### Reference：
