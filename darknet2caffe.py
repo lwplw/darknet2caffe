@@ -1,6 +1,7 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-caffe_root='/home/bu5/bu5project/caffe_yolov2/'
+# The caffe module needs to be on the Python path;
+#  we'll add it here explicitly.
+caffe_root='/home/bu5/bu5project/caffe_yolo/'
+#os.chdir(caffe_root)
 import sys
 sys.path.insert(0,caffe_root+'python')
 import caffe
@@ -10,26 +11,27 @@ from cfg import *
 from prototxt import *
 
 def darknet2caffe(cfgfile, weightfile, protofile, caffemodel):
-    # cfg2prototxt
     net_info = cfg2prototxt(cfgfile)
     save_prototxt(net_info , protofile, region=False)
 
-    # 加载模型 
     net = caffe.Net(protofile, caffe.TEST)
     params = net.params
 
     blocks = parse_cfg(cfgfile)
+
+    #Open the weights file
+    fp = open(weightfile, "rb")
     
-    # Open the weights file
-    fp = open(weightfile, 'rb')
+    #The first 4 values are header information 
+    # 1. Major version number
+    # 2. Minor Version Number
+    # 3. Subversion number 
+    # 4. IMages seen 
+    header = np.fromfile(fp, count=5, dtype=np.int32)
+    #print(header)
     
-    # The first 4 values are header information 
-    # 1.Major version number
-    # 2.Minor Version Number
-    # 3.Subversion number 
-    # 4.IMages seen 
-    header = np.fromfile(fp, count=4, dtype=np.int32)
     buf = np.fromfile(fp, dtype = np.float32)
+    #print(buf)
     
     fp.close()
 
@@ -57,27 +59,29 @@ def darknet2caffe(cfgfile, weightfile, protofile, caffemodel):
                 start = load_conv_bn2caffe(buf, start, params[conv_layer_name], params[bn_layer_name], params[scale_layer_name])
             else:
                 start = load_conv2caffe(buf, start, params[conv_layer_name])
-            layer_id = layer_id+1        
+            layer_id = layer_id+1
         elif block['type'] == 'connected':
             if block.has_key('name'):
                 fc_layer_name = block['name']
             else:
                 fc_layer_name = 'layer%d-fc' % layer_id
             start = load_fc2caffe(buf, start, params[fc_layer_name])
-            layer_id = layer_id+1           
+            layer_id = layer_id+1
         elif block['type'] == 'maxpool':
-            layer_id = layer_id+1         
+            layer_id = layer_id+1
         elif block['type'] == 'avgpool':
-            layer_id = layer_id+1           
+            layer_id = layer_id+1
         elif block['type'] == 'region':
-            layer_id = layer_id + 1          
+            layer_id = layer_id + 1
         elif block['type'] == 'route':
-            layer_id = layer_id + 1          
+            layer_id = layer_id + 1
         elif block['type'] == 'shortcut':
-            layer_id = layer_id + 1         
+            layer_id = layer_id + 1
         elif block['type'] == 'softmax':
-            layer_id = layer_id + 1          
+            layer_id = layer_id + 1
         elif block['type'] == 'cost':
+            layer_id = layer_id + 1
+        elif block['type'] == 'upsample':
             layer_id = layer_id + 1
         else:
             print('unknow layer type %s ' % block['type'])
@@ -99,7 +103,9 @@ def load_fc2caffe(buf, start, fc_param):
     bias   = fc_param[1].data
     fc_param[1].data[...] = np.reshape(buf[start:start+bias.size], bias.shape); start = start + bias.size
     fc_param[0].data[...] = np.reshape(buf[start:start+weight.size], weight.shape); start = start + weight.size
+    
     return start
+
 
 def load_conv_bn2caffe(buf, start, conv_param, bn_param, scale_param):
     conv_weight  = conv_param[0].data
@@ -108,12 +114,12 @@ def load_conv_bn2caffe(buf, start, conv_param, bn_param, scale_param):
     scale_weight = scale_param[0].data
     scale_bias   = scale_param[1].data
 
-    scale_param[1].data[...] = np.reshape(buf[start:start+scale_bias.size], scale_bias.shape); start = start + scale_bias.size
+    scale_param[1].data[...] = np.reshape(buf[start:start+scale_bias.size], scale_bias.shape);     start = start + scale_bias.size
     scale_param[0].data[...] = np.reshape(buf[start:start+scale_weight.size], scale_weight.shape); start = start + scale_weight.size
     bn_param[0].data[...]    = np.reshape(buf[start:start+running_mean.size], running_mean.shape); start = start + running_mean.size
-    bn_param[1].data[...]    = np.reshape(buf[start:start+running_var.size], running_var.shape); start = start + running_var.size
+    bn_param[1].data[...]    = np.reshape(buf[start:start+running_var.size], running_var.shape);   start = start + running_var.size
     bn_param[2].data[...]    = np.array([1.0])
-    conv_param[0].data[...]  = np.reshape(buf[start:start+conv_weight.size], conv_weight.shape); start = start + conv_weight.size
+    conv_param[0].data[...]  = np.reshape(buf[start:start+conv_weight.size], conv_weight.shape);   start = start + conv_weight.size    
     return start
 
 def cfg2prototxt(cfgfile):
@@ -214,8 +220,8 @@ def cfg2prototxt(cfgfile):
             pooling_param['kernel_size'] = block['size']
             pooling_param['stride'] = block['stride']
             pooling_param['pool'] = 'MAX'
-            if block.has_key('padding') and int(block['padding']) == 2:
-                pooling_param['pad'] = 1
+            if block.has_key('pad') and int(block['pad']) == 1:
+                pooling_param['pad'] = str((int(block['size'])-1)/2)
             max_layer['pooling_param'] = pooling_param
             layers.append(max_layer)
             bottom = max_layer['top']
@@ -288,6 +294,26 @@ def cfg2prototxt(cfgfile):
             print(layer_id)
             topnames[layer_id] = bottom
             layer_id = layer_id + 1
+        elif block['type'] == 'upsample':
+            upsample_layer = OrderedDict()
+            print(block['stride'])
+            upsample_layer['bottom'] = bottom
+            if block.has_key('name'):
+                upsample_layer['top'] = block['name']
+                upsample_layer['name'] = block['name']
+            else:
+                upsample_layer['top'] = 'layer%d-upsample' % layer_id
+                upsample_layer['name'] = 'layer%d-upsample' % layer_id
+            upsample_layer['type'] = 'Upsample'
+            upsample_param = OrderedDict()
+            upsample_param['scale'] = block['stride']
+            upsample_layer['upsample_param'] = upsample_param
+            print(upsample_layer)
+            layers.append(upsample_layer)
+            bottom = upsample_layer['top']
+            print('upsample:',layer_id)
+            topnames[layer_id] = bottom
+            layer_id = layer_id + 1
         elif block['type'] == 'shortcut':
             prev_layer_id1 = layer_id + int(block['from'])
             prev_layer_id2 = layer_id - 1
@@ -307,7 +333,7 @@ def cfg2prototxt(cfgfile):
             shortcut_layer['eltwise_param'] = eltwise_param
             layers.append(shortcut_layer)
             bottom = shortcut_layer['top']
- 
+           
             if block['activation'] != 'linear':
                 relu_layer = OrderedDict()
                 relu_layer['bottom'] = bottom
@@ -323,7 +349,7 @@ def cfg2prototxt(cfgfile):
                     relu_layer['relu_param'] = relu_param
                 layers.append(relu_layer)
             topnames[layer_id] = bottom
-            layer_id = layer_id+1                      
+            layer_id = layer_id + 1           
         elif block['type'] == 'connected':
             fc_layer = OrderedDict()
             fc_layer['bottom'] = bottom
@@ -339,7 +365,7 @@ def cfg2prototxt(cfgfile):
             fc_layer['inner_product_param'] = fc_param
             layers.append(fc_layer)
             bottom = fc_layer['top']
-
+            
             if block['activation'] != 'linear':
                 relu_layer = OrderedDict()
                 relu_layer['bottom'] = bottom
@@ -369,12 +395,17 @@ def cfg2prototxt(cfgfile):
 if __name__ == '__main__':
     import sys
     if len(sys.argv) != 5:
-        print('error！')
+        print('try:')
+        print('python darknet2caffe.py tiny-yolo-voc.cfg tiny-yolo-voc.weights tiny-yolo-voc.prototxt tiny-yolo-voc.caffemodel')
+        print('')
+        print('please add name field for each block to avoid generated name')
         exit()
 
-    cfgfile    = sys.argv[1]
+    cfgfile = sys.argv[1]
+    # net_info = cfg2prototxt(cfgfile)
+    # print_prototxt(net_info)
+    # save_prototxt(net_info, 'tmp.prototxt')
     weightfile = sys.argv[2]
     protofile  = sys.argv[3]
     caffemodel = sys.argv[4]
-    
     darknet2caffe(cfgfile, weightfile, protofile, caffemodel)
