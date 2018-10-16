@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-caffe_root='/home/bu5/bu5project/caffe_yolo/'
+caffe_root='/home/bu5/bu5project/caffe_yolov2/'
 import sys
 sys.path.insert(0,caffe_root+'python')
 import caffe
