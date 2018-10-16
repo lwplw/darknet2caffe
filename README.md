@@ -18,6 +18,8 @@ python darknet2caffe.py yolov2_tiny_3.cfg yolov2_tiny_3.weights yolov2_tiny_3.pr
 
 
 注：
+0、上面我准备好的4个文件下载链接：链接：https://pan.baidu.com/s/1IvThiM1BpkQ8HwNsKdhGCg 密码：0ajp
+
 1. 修改`darknet2caffe.py`中的Caffe路径（需要该Caffe已经添加YOLO相关的层，https://github.com/lwplw/caffe_yolov2）
 
 2. 修改`yolov2_tiny_3.prototxt`文件（和Caffe下region层的实现有关）
