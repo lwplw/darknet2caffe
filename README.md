@@ -19,7 +19,7 @@ python darknet2caffe.py yolov2_tiny_3.cfg yolov2_tiny_3.weights yolov2_tiny_3.pr
 
 注：
 
-0. 上面我准备好的4个文件下载链接：链接: https://pan.baidu.com/s/1A9dQzpbf08-VFxHZ0rRQUg 提取码: 5bur
+0. 上面我准备好的4个文件下载链接：链接: https://pan.baidu.com/s/1di7UxmJkUmkN3vgvlJOVFQ 提取码: ckd2
 
 1. 修改`darknet2caffe.py`中的Caffe路径（路径为Caffe的根目录，从官方GitHub下载并正常安装，可参考：https://blog.csdn.net/lwplwf/article/details/82415620）
 
